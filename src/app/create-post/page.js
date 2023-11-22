@@ -4,55 +4,71 @@ import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 import { useRouter } from "next/navigation";
 import { UserAuth } from "../context/AuthContext";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const Page = () => {
   const { isAuth } = UserAuth();
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [postText, setPostText] = useState("");
+  const [value, setValue] = useState("");
 
   const postsCollectionRef = collection(db, "posts");
   const createPost = async () => {
     await addDoc(postsCollectionRef, {
-      title,
-      postText,
+      value,
       author: { name: auth.currentUser.displayName, id: auth.currentUser.uid },
     });
     router.push("/");
   };
-  useEffect (() => {
-    if(!isAuth) {
-      router.push('/login')
+  useEffect(() => {
+    if (!isAuth) {
+      router.push("/login");
     }
-  })
+  });
+  const module = {
+    toolbar: [
+      [{ header: [1, 2, 3, 4, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+  ];
   return (
-    <div className="w-full min-h-calc-viewport grid place-items-center">
-      <div className="w-[500px] h-auto p-5 bg-gray-600 rounded-md text-white flex flex-col">
-        <h1 className="text-center text-3xl font-bold">Create A Post</h1>
-        <div className="mt-7 flex flex-col">
-          <label className="text-2xl mb-2">Title</label>
-          <input
-            onChange={(event) => {
-              setTitle(event.target.value);
-            }}
-            className="text-black h-10 text-base rounded-md p-2"
-            placeholder="Enter title"
-          />
-        </div>
-        <div className="mt-7 flex flex-col">
-          <label className="text-2xl mb-2">Post</label>
-          <textarea
-            className="h-[250px] text-black text-base rounded-md p-2"
-            placeholder="Enter your post"
-            onChange={(event) => {
-              setPostText(event.target.value);
-            }}
-          />
-        </div>
-        <button onClick={createPost} className="mt-5 h-10 border rounded cursor-pointer text-xl">
-          Submit Post
-        </button>
-      </div>
+    <div className="flex max-w-[800px] mx-auto h-full flex-col justify-center items-center" >
+      <ReactQuill
+        className="h-auto mt-16 rounded-full"
+        theme="snow"
+        value={value}
+        onChange={setValue}
+        modules={module}
+        formats={formats}
+        
+      />
+      <button
+        onClick={createPost}
+        className="w-20 mt-16 rounded flex justify-center bg-gray-600 text-white py-4 px-20 text-center text-base cursor-pointer"
+      >
+        Save
+      </button>
     </div>
   );
 };
