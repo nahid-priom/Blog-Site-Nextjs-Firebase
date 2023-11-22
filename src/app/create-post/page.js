@@ -1,11 +1,13 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
-import { useRouter } from "next/navigation";  // corrected import path
+import { useRouter } from "next/navigation";
 import { UserAuth } from "../context/AuthContext";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 const Page = () => {
   const { isAuth } = UserAuth();
@@ -25,15 +27,15 @@ const Page = () => {
     router.push("/");
   };
 
-  useEffect(() => {
-    const redirectToLogin = () => {
-      if (!isAuth) {
-        router.push("/login");
-      }
-    };
+  // useEffect(() => {
+  //   const redirectToLogin = () => {
+  //     if (!isAuth) {
+  //       router.push("/login");
+  //     }
+  //   };
 
-    redirectToLogin();
-  }, [isAuth, router]);
+  //   redirectToLogin();
+  // }, [isAuth, router]);
 
   const quillModule = {
     toolbar: [
