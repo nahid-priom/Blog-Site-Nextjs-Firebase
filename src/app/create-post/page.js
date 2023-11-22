@@ -1,8 +1,8 @@
-"use client";
+'use client'
 import React, { useEffect, useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";  // corrected import path
 import { UserAuth } from "../context/AuthContext";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -13,19 +13,29 @@ const Page = () => {
   const [value, setValue] = useState("");
 
   const postsCollectionRef = collection(db, "posts");
+
   const createPost = async () => {
     await addDoc(postsCollectionRef, {
       value,
-      author: { name: auth.currentUser.displayName, id: auth.currentUser.uid },
+      author: {
+        name: auth.currentUser?.displayName || "Unknown",
+        id: auth.currentUser?.uid || "Unknown",
+      },
     });
     router.push("/");
   };
+
   useEffect(() => {
-    if (!isAuth) {
-      router.push("/login");
-    }
-  });
-  const module = {
+    const redirectToLogin = () => {
+      if (!isAuth) {
+        router.push("/login");
+      }
+    };
+
+    redirectToLogin();
+  }, [isAuth, router]);
+
+  const quillModule = {
     toolbar: [
       [{ header: [1, 2, 3, 4, false] }],
       ["bold", "italic", "underline", "strike", "blockquote"],
@@ -39,6 +49,7 @@ const Page = () => {
       ["clean"],
     ],
   };
+
   const formats = [
     "header",
     "bold",
@@ -52,16 +63,16 @@ const Page = () => {
     "link",
     "image",
   ];
+
   return (
-    <div className="flex max-w-[800px] mx-auto h-full flex-col justify-center items-center" >
+    <div className="flex max-w-[800px] mx-auto h-full flex-col justify-center items-center">
       <ReactQuill
         className="h-auto mt-16 rounded-full"
         theme="snow"
         value={value}
         onChange={setValue}
-        modules={module}
+        modules={quillModule}
         formats={formats}
-        
       />
       <button
         onClick={createPost}
