@@ -27,16 +27,6 @@ const Page = () => {
     router.push("/");
   };
 
-  // useEffect(() => {
-  //   const redirectToLogin = () => {
-  //     if (!isAuth) {
-  //       router.push("/login");
-  //     }
-  //   };
-
-  //   redirectToLogin();
-  // }, [isAuth, router]);
-
   const quillModule = {
     toolbar: [
       [{ header: [1, 2, 3, 4, false] }],
@@ -47,7 +37,7 @@ const Page = () => {
         { indent: "-1" },
         { indent: "+1" },
       ],
-      ["link", "image"],
+      ["link", "image", "video"], // Add video option
       ["clean"],
     ],
   };
@@ -64,6 +54,7 @@ const Page = () => {
     "indent",
     "link",
     "image",
+    "video", // Add video format
   ];
 
   return (
