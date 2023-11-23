@@ -27,7 +27,7 @@ export default function Home() {
       {postLists.map((post, index) => {
         return (
           <div
-            className="w-[700px] h-auto max-h-[600px] bg-gray-200 shadow-md m-5 p-5 rounded"
+            className="w-[380px] md:w-[500px] xl:w-[650px] h-auto max-h-[600px] bg-gray-200 shadow-md m-5 p-5 rounded"
             key={index}
           >
             <div className="w-full">
