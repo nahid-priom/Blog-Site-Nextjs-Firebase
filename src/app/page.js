@@ -10,17 +10,13 @@ export default function Home() {
   const [postLists, setPostLists] = useState([]);
   const postsCollectionRef = collection(db, "posts");
 
-  const createMarkup = (htmlContent) => {
-    const sanitizedHtml = DOMPurify.sanitize(htmlContent);
-    return { __html: sanitizedHtml };
-  };
   useEffect(() => {
     const getPosts = async () => {
       const data = await getDocs(postsCollectionRef);
       setPostLists(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
     getPosts();
-  }, []);
+  }, [doc]);
 
   const deletePost = async (id) => {
     const postDoc = doc(db, "posts", id);
