@@ -13,6 +13,7 @@ const Page = () => {
   const { isAuth } = UserAuth();
   const router = useRouter();
   const [value, setValue] = useState("");
+  const [showPopup, setShowPopup] = useState(false); // State for the popup visibility
 
   const postsCollectionRef = collection(db, "posts");
 
@@ -24,7 +25,12 @@ const Page = () => {
         id: auth.currentUser?.uid || "Unknown",
       },
     });
-    router.push("/");
+    setShowPopup(true); // Show the popup when the post is created
+    // You can optionally set a timeout to hide the popup after a few seconds
+    setTimeout(() => {
+      setShowPopup(false);
+      router.push("/");
+    }, 3000);
   };
 
   const quillModule = {
@@ -73,6 +79,13 @@ const Page = () => {
       >
         Save
       </button>
+
+      {/* Popup */}
+      {showPopup && (
+        <div className="popup">
+          <p>Blog is shared!</p>
+        </div>
+      )}
     </div>
   );
 };

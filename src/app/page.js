@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { auth, db } from "./firebase-config";
 import { UserAuth } from "./context/AuthContext";
 import DOMPurify from "dompurify";
-
+import { useRouter } from "next/navigation";
 export default function Home() {
   const { isAuth } = UserAuth();
   const [postLists, setPostLists] = useState([]);
   const postsCollectionRef = collection(db, "posts");
 
+  const router = useRouter();
   useEffect(() => {
     const getPosts = async () => {
       const data = await getDocs(postsCollectionRef);
@@ -21,6 +22,7 @@ export default function Home() {
   const deletePost = async (id) => {
     const postDoc = doc(db, "posts", id);
     await deleteDoc(postDoc);
+    router.push("/");
   };
   return (
     <div className="w-full min-h-calc-viewport h-auto flex flex-col items-center pt-5">
