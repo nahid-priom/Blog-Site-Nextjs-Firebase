@@ -1,12 +1,12 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { useState } from "react";
+import { addDoc, collection, doc, setDoc, serverTimestamp, Timestamp, increment, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 import { useRouter } from "next/navigation";
 import { UserAuth } from "../context/AuthContext";
 import "react-quill/dist/quill.snow.css";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -14,62 +14,96 @@ const Page = () => {
   const { isAuth } = UserAuth();
   const router = useRouter();
   const [value, setValue] = useState("");
-  const [showPopup, setShowPopup] = useState(false); // State for the popup visibility
-
-  const postsCollectionRef = collection(db, "posts");
-
+  const [showPopup, setShowPopup] = useState(false);
+  
+  const postsCollectionRef = collection(db, "BlogPosts");
+  const contentCollectionRef = collection(db, "Content");
+  
   const createPost = async () => {
-    const imageUrls = extractImageUrls(value);
-    const textContent = removeImageTags(value);
-
-    // Upload images to Firebase Storage
-    const uploadedImageUrls = await uploadImagesToStorage(imageUrls);
-
-    // Add post to Firestore with image download URLs and without the image data in "text"
-    await addDoc(postsCollectionRef, {
-      content: {
-        text: textContent,
-        images: uploadedImageUrls,
-      },
-      author: {
-        name: auth.currentUser?.displayName || "Unknown",
-        id: auth.currentUser?.uid || "Unknown",
-      },
+    const textContent = removeImageTags(value); // Extract text content without images
+  
+    // Create a new BlogPost document
+    const blogPostRef = await addDoc(postsCollectionRef, {
+      title: "My First Blog Post", // You can customize this
+      authorId: auth.currentUser?.uid || "Unknown",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
-
+  
+    // Split the text content into parts (text and images)
+    const parts = textContent.split(/<img[^>]+src="([^">]+)"[^>]*>|(<[^>]+>)/g).filter(Boolean);
+  
+    // Get the current content count
+    const contentQuery = query(contentCollectionRef, where("blogPostId", "==", blogPostRef.id));
+    const contentSnapshot = await getDocs(contentQuery);
+    const currentContentCount = contentSnapshot.size;
+  
+    // Add content to the Content subcollection
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+  
+      if (part.startsWith("<img")) {
+        // Handle image
+        await addDoc(contentCollectionRef, {
+          blogPostId: blogPostRef.id,
+          contentType: "image",
+          contentData: part,
+          sequence: currentContentCount + i + 1,
+          createdAt: serverTimestamp(),
+        });
+      } else {
+        // Handle text
+        await addDoc(contentCollectionRef, {
+          blogPostId: blogPostRef.id,
+          contentType: "text",
+          contentData: part,
+          sequence: currentContentCount + i + 1,
+          createdAt: serverTimestamp(),
+        });
+      }
+    }
+  
     setShowPopup(true);
     setTimeout(() => {
       setShowPopup(false);
       router.push("/");
     }, 3000);
   };
-
-  const extractImageUrls = (quillValue) => {
+  
+  
+  
+  const uploadImagesToStorage = async (quillValue, blogPostRef) => {
     const regex = /<img[^>]+src="([^">]+)"/g;
     const matches = quillValue.match(regex);
-    return matches ? matches.map(match => match.replace(/<img[^>]+src="([^">]+)"/, '$1')) : [];
+  
+    if (!matches) {
+      return [];
+    }
+  
+    const storage = getStorage();
+  
+    const uploadPromises = matches.map(async (match, index) => {
+      const imageUrl = match.replace(/<img[^>]+src="([^">]+)"/, '$1');
+      const response = await fetch(imageUrl);
+  
+      // Handle base64-encoded images
+      const isBase64 = imageUrl.startsWith('data:image');
+      const imageBlob = isBase64 ? await response.blob() : await response.arrayBuffer();
+  
+      const imageRef = ref(storage, `images/${blogPostRef.id}/image${index + 1}.png`);
+      await uploadBytes(imageRef, imageBlob);
+      return getDownloadURL(imageRef);
+    });
+  
+    return Promise.all(uploadPromises);
   };
-
+  
   const removeImageTags = (quillValue) => {
     // Remove image tags from the quill content
     return quillValue.replace(/<img[^>]*src=["'][^"']*["'][^>]*>/g, '');
   };
-
-  const uploadImagesToStorage = async (imageUrls) => {
-    const storage = getStorage();
-
-    const uploadPromises = imageUrls.map(async (imageUrl, index) => {
-      const response = await fetch(imageUrl);
-      const imageBlob = await response.blob();
-      const imageRef = ref(storage, `images/image${index + 1}.png`);
-      await uploadBytes(imageRef, imageBlob);
-      return getDownloadURL(imageRef);
-    });
-
-    return Promise.all(uploadPromises);
-  };
-
-
+  
+  
   const quillModule = {
     toolbar: [
       [{ header: [1, 2, 3, 4, false] }],
@@ -80,11 +114,11 @@ const Page = () => {
         { indent: "-1" },
         { indent: "+1" },
       ],
-      ["link", "image", "video"], // Add video option
+      ["link", "image", "video"],
       ["clean"],
     ],
   };
-
+  
   const formats = [
     "header",
     "bold",
@@ -97,7 +131,7 @@ const Page = () => {
     "indent",
     "link",
     "image",
-    "video", // Add video format
+    "video",
   ];
 
   return (
@@ -117,7 +151,6 @@ const Page = () => {
         Save
       </button>
 
-      {/* Popup */}
       {showPopup && (
         <div className="popup">
           <p>Blog is shared!</p>
