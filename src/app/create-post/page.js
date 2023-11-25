@@ -1,13 +1,14 @@
-'use client'
-import dynamic from 'next/dynamic';
+"use client";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 import { useRouter } from "next/navigation";
 import { UserAuth } from "../context/AuthContext";
 import "react-quill/dist/quill.snow.css";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const Page = () => {
   const { isAuth } = UserAuth();
@@ -18,20 +19,56 @@ const Page = () => {
   const postsCollectionRef = collection(db, "posts");
 
   const createPost = async () => {
+    const imageUrls = extractImageUrls(value);
+    const textContent = removeImageTags(value);
+
+    // Upload images to Firebase Storage
+    const uploadedImageUrls = await uploadImagesToStorage(imageUrls);
+
+    // Add post to Firestore with image download URLs and without the image data in "text"
     await addDoc(postsCollectionRef, {
-      value,
+      content: {
+        text: textContent,
+        images: uploadedImageUrls,
+      },
       author: {
         name: auth.currentUser?.displayName || "Unknown",
         id: auth.currentUser?.uid || "Unknown",
       },
     });
-    setShowPopup(true); // Show the popup when the post is created
-    // You can optionally set a timeout to hide the popup after a few seconds
+
+    setShowPopup(true);
     setTimeout(() => {
       setShowPopup(false);
       router.push("/");
     }, 3000);
   };
+
+  const extractImageUrls = (quillValue) => {
+    const regex = /<img[^>]+src="([^">]+)"/g;
+    const matches = quillValue.match(regex);
+    return matches ? matches.map(match => match.replace(/<img[^>]+src="([^">]+)"/, '$1')) : [];
+  };
+
+  const removeImageTags = (quillValue) => {
+    // Remove image tags from the quill content
+    return quillValue.replace(/<img[^>]*src=["'][^"']*["'][^>]*>/g, '');
+  };
+
+  const uploadImagesToStorage = async (imageUrls) => {
+    const storage = getStorage();
+
+    const uploadPromises = imageUrls.map(async (imageUrl, index) => {
+      const response = await fetch(imageUrl);
+      const imageBlob = await response.blob();
+      const imageRef = ref(storage, `images/image${index + 1}.png`);
+      await uploadBytes(imageRef, imageBlob);
+      return getDownloadURL(imageRef);
+    });
+
+    return Promise.all(uploadPromises);
+  };
+
 
   const quillModule = {
     toolbar: [
