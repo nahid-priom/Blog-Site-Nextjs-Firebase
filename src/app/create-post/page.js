@@ -18,23 +18,16 @@ const Page = () => {
     let quillValue = value;
 
     const postsCollectionRef = collection(db, "BlogPosts");
-    const contentCollectionRef = collection(db, "Content");
     // Replace base64-encoded images with URLs
     quillValue = await replaceBase64Images(quillValue);
 
     // Create a new BlogPost document
-    const blogPostRef = await addDoc(collection(db, "BlogPosts"), {
+    await addDoc(collection(db, "BlogPosts"), {
         title: "My First Blog Post",
         authorId: auth.currentUser?.uid || "Unknown",
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      
-      // Add text content to the "posts" subcollection
-      await addDoc(collection(blogPostRef, "Content"), {
-        contentType: "text",
         contentData: quillValue,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       
     setShowPopup(true);
@@ -68,7 +61,7 @@ const Page = () => {
         // Replace base64-encoded image with the download URL
         quillValue = quillValue.replace(
           match,
-          `<img src="${await getDownloadURL(imageRef)}" />`
+          `<img src="${await getDownloadURL(imageRef)}" alt="image-description"`
         );
       }
     }
