@@ -7,7 +7,7 @@ import { db, auth } from "../firebase-config";
 import "react-quill/dist/quill.snow.css";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 const Page = () => {
   const [value, setValue] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -21,15 +21,20 @@ const Page = () => {
     // Replace base64-encoded images with URLs
     quillValue = await replaceBase64Images(quillValue);
 
+
+    // Remove <p> tags around images
+    quillValue = quillValue.replace(/<p><img/g, "<img").replace(/><\/p>/g, "/>");
+
+
     // Create a new BlogPost document
     await addDoc(collection(db, "BlogPosts"), {
-        title: "My First Blog Post",
-        authorId: auth.currentUser?.uid || "Unknown",
-        contentData: quillValue,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      
+      title: "My First Blog Post", // You can customize this
+      authorId: auth.currentUser?.uid || "Unknown",
+      contentData: quillValue,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
     setShowPopup(true);
     setTimeout(() => {
       setShowPopup(false);
@@ -55,7 +60,13 @@ const Page = () => {
         const response = await fetch(imageUrl);
         const imageBlob = await response.blob();
 
-        const imageRef = ref(storage, `images/temp_image${i + 1}.png`);
+        // Generate a unique identifier for the image reference
+        const uniqueIdentifier = Date.now(); // You can use any method to generate a unique identifier
+        const imageRef = ref(
+          storage,
+          `images/temp_image_${uniqueIdentifier}_${i + 1}.png`
+        );
+
         await uploadBytes(imageRef, imageBlob);
 
         // Replace base64-encoded image with the download URL
@@ -82,6 +93,9 @@ const Page = () => {
       ["link", "image"],
       ["clean"],
     ],
+    clipboard: {
+      matchVisual: false,
+    },
   };
 
   const formats = [
