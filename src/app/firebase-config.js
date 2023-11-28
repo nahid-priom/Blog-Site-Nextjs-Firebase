@@ -7,12 +7,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // Add this line
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBSS8do1o98_B4OI2llbmLloauNF2ZEiUk",
-  authDomain: "blog-project-deade.firebaseapp.com",
-  projectId: "blog-project-deade",
-  storageBucket: "blog-project-deade.appspot.com",
-  messagingSenderId: "379625674922",
-  appId: "1:379625674922:web:3fc1feb1c27cc68b10d8d3",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
