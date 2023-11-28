@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { serverTimestamp } from "firebase/firestore";
@@ -11,6 +11,8 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 const Page = () => {
   const [value, setValue] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [imageAlt, setImageAlt] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const router = useRouter();
   const createPost = async () => {
@@ -21,10 +23,10 @@ const Page = () => {
     // Replace base64-encoded images with URLs
     quillValue = await replaceBase64Images(quillValue);
 
-
     // Remove <p> tags around images
-    quillValue = quillValue.replace(/<p><img/g, "<img").replace(/><\/p>/g, "/>");
-
+    quillValue = quillValue
+      .replace(/<p><img/g, "<img")
+      .replace(/><\/p>/g, "/>");
 
     // Create a new BlogPost document
     await addDoc(collection(db, "BlogPosts"), {
@@ -72,7 +74,7 @@ const Page = () => {
         // Replace base64-encoded image with the download URL
         quillValue = quillValue.replace(
           match,
-          `<img src="${await getDownloadURL(imageRef)}" alt="image-description"`
+          `<img src="${await getDownloadURL(imageRef)}" alt="${imageAlt}"`
         );
       }
     }
@@ -80,6 +82,36 @@ const Page = () => {
     return quillValue;
   };
 
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setImageAlt("");
+    setShowPopup(true);
+  };
+  const handleUpdateAlt = () => {
+    if (selectedImage) {
+      // Update value with the alt text and image URL
+      setValue((prevValue) =>
+        replaceBase64Images(prevValue, selectedImage, imageAlt)
+      );
+    }
+
+    setSelectedImage(null);
+    setImageAlt("");
+    setShowPopup(false);
+  };
+  useEffect(() => {
+    const quillEditor = document.querySelector(".ql-editor");
+
+    if (quillEditor) {
+      quillEditor.addEventListener("click", handleImageClick);
+    }
+
+    return () => {
+      if (quillEditor) {
+        quillEditor.removeEventListener("click", handleImageClick);
+      }
+    };
+  }, [handleImageClick]);
   const quillModule = {
     toolbar: [
       [{ header: [1, 2, 3, 4, false] }],
@@ -112,7 +144,7 @@ const Page = () => {
     "image",
   ];
   return (
-    <div className="flex max-w-[800px] mx-auto h-full flex-col justify-center items-center">
+    <div className="flex relative max-w-[800px] mx-auto h-full flex-col justify-center items-center">
       <ReactQuill
         className="h-auto mt-16 rounded-full"
         theme="snow"
@@ -120,6 +152,12 @@ const Page = () => {
         onChange={setValue}
         modules={quillModule}
         formats={formats}
+        Add a custom handler for image clicks
+        onClick={(event) => {
+          if (event.target.tagName === "IMG") {
+            handleImageClick(event.target.src);
+          }
+        }}
       />
       <button
         onClick={createPost}
@@ -129,8 +167,21 @@ const Page = () => {
       </button>
 
       {showPopup && (
-        <div className="popup">
-          <p>Blog is shared!</p>
+        <div className="bg-gray-200 rounded absolute h-20 flex justify-center items-center py-4 px-4">
+          {/* Input for alt text */}
+          <input
+            type="text"
+            placeholder="Enter alt text"
+            value={imageAlt}
+            onChange={(e) => setImageAlt(e.target.value)}
+            className="py-1 px-2 rounded"
+          />
+          <div className="px-2">
+            {/* Button to update alt text */}
+            <button className="bg-black text-white px-1 py-1 rounded text-sm mr-2" onClick={handleUpdateAlt}>Update</button>
+            {/* Close button */}
+            <button className="bg-black text-white px-1 py-1 rounded text-sm " onClick={() => setShowPopup(false)}>Close</button>
+          </div>
         </div>
       )}
     </div>
