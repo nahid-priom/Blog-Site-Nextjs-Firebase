@@ -7,18 +7,16 @@ import { db, auth } from "../firebase-config";
 import "react-quill/dist/quill.snow.css";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { FaPlus } from "react-icons/fa";
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 const Page = () => {
   const [value, setValue] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [imageAlt, setImageAlt] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [creatingPost, setCreatingPost] = useState(false);
-  console.log(imageAlt)
+  const [title, setTitle] = useState("");
 
   const router = useRouter();
   const createPost = async () => {
-    setCreatingPost(true);
     // Use the Quill content from state
     let quillValue = value;
 
@@ -34,9 +32,11 @@ const Page = () => {
   
 
     // Create a new BlogPost document
-    await addDoc(collection(db, "BlogPosts"), {
-      title: "My First Blog Post",
+    const docRef = await addDoc(postsCollectionRef, {
       authorId: auth.currentUser?.uid || "Unknown",
+      authorName: auth.currentUser?.user?.authorName || auth.currentUser?.displayName || "Unknown",
+      profilePictureURL: auth.currentUser?.photoURL || "Unknown",
+      title: title || "My First Blog Post",
       contentData: quillValue,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -93,7 +93,15 @@ const Page = () => {
     setShowPopup(false)
   };
   
-  
+  const handleTitleChange = (e) => {
+    setTitle(e.target.value);
+  };
+
+  const handleTitleClick = () => {
+    // Clear the title when the input is clicked
+    setTitle('');
+   
+  };
 
   useEffect(() => {
     const quillEditor = document.querySelector(".ql-editor");
@@ -118,6 +126,21 @@ const Page = () => {
 
   return (
     <div className="flex relative max-w-[800px] mx-auto h-full flex-col justify-center items-center">
+      <div className="w-full mt-4 flex justify-center items-center place-items-start">
+        <span className="text-3xl mr-2 cursor-pointer" onClick={handleTitleClick}>
+          <FaPlus className="text-gray-300" />
+        </span>
+        <input
+          type="text"
+          id="postTitle"
+          value={title}
+          onChange={handleTitleChange}
+          onClick={handleTitleClick}
+          placeholder="Title"
+          className="w-full h-12 text-4xl px-4 text-gray-600 border-l-2 border-gray-300 focus:outline-none"
+          autoComplete="off"
+        />
+      </div>
     <ReactQuill
       className="h-auto mt-16 rounded-full"
       theme="snow"
