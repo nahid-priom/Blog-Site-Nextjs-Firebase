@@ -28,8 +28,10 @@ const Page = () => {
 
     // Remove <p> tags around images
     quillValue = quillValue
-      .replace(/<p><img/g, "<img")
-      .replace(/><\/p>/g, "/>");
+    .replace(/<p><img/g, "<img")
+    .replace(/><\/p>/g, "/>")
+    .replace(/<h[1-4]><img/g, "<img")
+  
 
     // Create a new BlogPost document
     await addDoc(collection(db, "BlogPosts"), {
