@@ -3,8 +3,8 @@ import { getDocs, collection } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { auth, db } from "./firebase-config";
 import { UserAuth } from "./context/AuthContext";
-import DOMPurify from "dompurify";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
   const { isAuth } = UserAuth();
@@ -24,7 +24,7 @@ export default function Home() {
     };
 
     getPosts();
-  }, [postsCollectionRef]);
+  }, []);
 
   function extractParagraph(htmlString) {
     const doc = new DOMParser().parseFromString(htmlString, "text/html");
@@ -49,7 +49,10 @@ export default function Home() {
   return (
     <div className="max-w-[680px] mx-auto mt-12">
       {postLists.map((post) => (
-        <div key={post.id} className="bg-white border-b border-gray-200 p-4 mb-4">
+        <div
+          key={post.id}
+          className="bg-white border-b border-gray-200 p-4 mb-4"
+        >
           <div className="flex items-center">
             <img
               src={post.profilePictureURL}
@@ -67,7 +70,10 @@ export default function Home() {
           {/* Render Title and Content */}
           <div className="flex justify-center items-center">
             <div className="w-3/4 pr-4">
-              <h2 className="text-xl py-2 font-semibold">{post.title}</h2>
+            <Link href="/blog/:[id]" as={`/blog/${post.id}`}>
+                <h2 className="text-xl py-2 font-semibold">{post.title}</h2>
+              </Link>
+
               {post.contentData && (
                 <p className="text-base text-gray-500">
                   {truncateText(extractParagraph(post.contentData), 20)}
@@ -85,7 +91,9 @@ export default function Home() {
               </div>
             )}
           </div>
-            <p className="flex justify-start pt-8 pb-4 items-center">5 min read</p>
+          <p className="flex justify-start pt-8 pb-4 items-center">
+            5 min read
+          </p>
 
           {/* Add additional components or styles as needed */}
         </div>
