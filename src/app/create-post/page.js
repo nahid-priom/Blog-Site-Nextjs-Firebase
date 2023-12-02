@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../firebase-config";
 import "react-quill/dist/quill.snow.css";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { FaPlus } from "react-icons/fa";
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 const Page = () => {
   const [value, setValue] = useState("");
@@ -83,8 +82,7 @@ const Page = () => {
     return quillValue;
   };
   
-  const handleImageClick = (imageUrl, altText) => {
-    setSelectedImage({ imageUrl, altText });
+  const handleImageClick = (altText) => {
     setImageAlt(altText || "");
     console.log(altText)
     setShowPopup(true);
@@ -110,7 +108,7 @@ const Page = () => {
       const handleEditorClick = (event) => {
         const isImage = event.target.tagName === "IMG";
         if (isImage) {
-          handleImageClick(event.target.src, event.target.alt);
+          handleImageClick( event.target.alt);
         }
       };
 
@@ -125,24 +123,21 @@ const Page = () => {
 
 
   return (
-    <div className="flex relative max-w-[800px] mx-auto h-full flex-col justify-center items-center">
+    <div className="flex relative max-w-[800px] mx-auto h-full flex-col justify-center items-center mb-8">
       <div className="w-full mt-4 flex justify-center items-center place-items-start">
-        <span className="text-3xl mr-2 cursor-pointer" onClick={handleTitleClick}>
-          <FaPlus className="text-gray-300" />
-        </span>
         <input
           type="text"
           id="postTitle"
           value={title}
           onChange={handleTitleChange}
           onClick={handleTitleClick}
-          placeholder="Title"
-          className="w-full h-12 text-4xl px-4 text-gray-600 border-l-2 border-gray-300 focus:outline-none"
+          placeholder="Enter your blog post Title!"
+          className="w-full h-12 text-2xl px-4 text-gray-600 border-b-2 text-center rounded-full border-gray-300 focus:outline-none"
           autoComplete="off"
         />
       </div>
     <ReactQuill
-      className="h-auto mt-16 rounded-full"
+      className="h-96 mt-10"
       theme="snow"
       value={value}
       onChange={setValue}
@@ -179,7 +174,7 @@ const Page = () => {
     />
     <button
       onClick={createPost}
-      className="w-20 mt-16 rounded flex justify-center bg-gray-600 text-white py-4 px-20 text-center text-base cursor-pointer"
+      className="w-20 mt-20 rounded flex justify-center bg-gray-600 text-white py-4 px-20 text-center text-base cursor-pointer"
     >
       Save
     </button>

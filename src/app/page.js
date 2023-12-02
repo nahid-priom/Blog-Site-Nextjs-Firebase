@@ -1,18 +1,13 @@
 "use client";
 import { getDocs, collection } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { auth, db } from "./firebase-config";
-import { UserAuth } from "./context/AuthContext";
-import { useRouter } from "next/navigation";
+import { db } from "./firebase-config";
 import Link from "next/link";
 
 export default function Home() {
-  const { isAuth } = UserAuth();
   const [postLists, setPostLists] = useState([]);
 
   const postsCollectionRef = collection(db, "BlogPosts");
-
-  const router = useRouter();
 
   useEffect(() => {
     const getPosts = async () => {
@@ -27,11 +22,26 @@ export default function Home() {
   }, []);
 
   function extractParagraph(htmlString) {
-    const doc = new DOMParser().parseFromString(htmlString, "text/html");
-    const paragraphElement = doc.querySelector("p");
-
-    return paragraphElement ? paragraphElement.textContent : "";
+    const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+    const firstElement = doc.body.firstChild;
+  
+    if (!firstElement) {
+      return ''; // No content or empty string
+    }
+  
+    let nextElement = firstElement.nextSibling;
+  
+    while (nextElement) {
+      if (nextElement.nodeName.toLowerCase() === 'p') {
+        return nextElement.textContent;
+      }
+  
+      nextElement = nextElement.nextSibling;
+    }
+  
+    return ''; // No paragraph found after the image
   }
+  
 
   // Function to truncate text to a specified number of words
   function truncateText(text, numWords) {
@@ -82,7 +92,7 @@ export default function Home() {
             </div>
 
             {post.contentData && (
-              <div className="w-30">
+              <div className="w-40 h-auto">
                 <img
                   src={extractImageUrl(post.contentData)}
                   alt="Post Image"
