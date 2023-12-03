@@ -41,8 +41,8 @@ const SingleBlogPost = () => {
 
   const sanitizedContent = DOMPurify.sanitize(post.contentData);
   return (
-    <div className="max-w-[680px] mx-auto my-12">
-      <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+    <div className="max-w-[680px] md:mx-auto my-6 md:my-12 mx-4">
+      <h1 className="text-2xl md:text-4xl font-bold mb-4">{post.title}</h1>
       <div className="flex items-end pt-2 pb-4">
         <img
           src={post.profilePictureURL}

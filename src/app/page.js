@@ -23,27 +23,15 @@ export default function Home() {
 
   function extractParagraph(htmlString) {
     const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-    const firstElement = doc.body.firstChild;
-  
-    if (!firstElement) {
-      return ''; // No content or empty string
-    }
-  
-    let nextElement = firstElement.nextSibling;
-  
-    while (nextElement) {
-      if (nextElement.nodeName.toLowerCase() === 'p') {
-        return nextElement.textContent;
-      }
-  
-      nextElement = nextElement.nextSibling;
-    }
-  
-    return ''; // No paragraph found after the image
-  }
-  
+    const paragraphs = doc.querySelectorAll('p');
 
-  // Function to truncate text to a specified number of words
+    if (paragraphs.length > 0) {
+      return paragraphs[0].textContent;
+    }
+
+    return ''; // No paragraphs found
+  }
+
   function truncateText(text, numWords) {
     const words = text.split(" ");
     const truncatedText = words.slice(0, numWords).join(" ");
@@ -57,7 +45,7 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-[680px] mx-auto mt-12">
+    <div className="max-w-[680px] mx-auto mt-4 md:mt-12">
       {postLists.map((post) => (
         <div
           key={post.id}
@@ -69,10 +57,10 @@ export default function Home() {
               alt="Profile Picture"
               className="w-6 h-6 rounded-full mr-2"
             />
-            <p className="text-sm font-bold pr-2 border-r-2 border-gray-500">
+            <p className="text-xs md:text-sm font-bold pr-2 border-r-2 border-gray-500">
               {post.authorName}
             </p>
-            <p className="text-sm text-gray-900 pl-2">
+            <p className="text-xs md:text-sm text-gray-900 pl-2">
               {post.createdAt.toDate().toLocaleString()}
             </p>
           </div>
@@ -81,11 +69,11 @@ export default function Home() {
           <div className="flex justify-center items-center">
             <div className="w-3/4 pr-4">
             <Link href="/blog/:[id]" as={`/blog/${post.id}`}>
-                <h2 className="text-xl py-2 font-semibold">{post.title}</h2>
+                <h2 className=" text-base md:text-xl py-2 font-semibold">{post.title}</h2>
               </Link>
 
               {post.contentData && (
-                <p className="text-base text-gray-500">
+                <p className="text-xs md:text-base text-gray-500">
                   {truncateText(extractParagraph(post.contentData), 20)}
                 </p>
               )}

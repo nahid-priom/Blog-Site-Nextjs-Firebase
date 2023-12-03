@@ -123,7 +123,7 @@ const Page = () => {
 
 
   return (
-    <div className="flex relative max-w-[800px] mx-auto h-full flex-col justify-center items-center mb-8">
+    <div className="flex relative h-full flex-col justify-center items-center mb-8 max-w-[680px] md:mx-auto my-6 md:my-12 mx-4">
       <div className="w-full mt-4 flex justify-center items-center place-items-start">
         <input
           type="text"

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import the useRouter hook
 import React from "react";
 import { UserAuth } from "../context/AuthContext";
 
@@ -12,6 +11,9 @@ const Navbar = () => {
         <Link className="text-white m-2.5 text-2xl" href="/">
           Home
         </Link>
+        <Link className="text-white m-2.5 text-2xl" href="/create-post">
+          Create Post
+        </Link>
 
         {!isAuth ? (
           <Link className="text-white m-2.5 text-2xl" href="/login">
@@ -19,9 +21,6 @@ const Navbar = () => {
           </Link>
         ) : (
           <>
-            <Link className="text-white m-2.5 text-2xl" href="/create-post">
-              Create Post
-            </Link>
             <button className="text-white m-2.5 text-2xl" onClick={logOut}>
               {" "}
               Log Out
