@@ -16,21 +16,21 @@ const Page = () => {
 
   const router = useRouter();
   const createPost = async () => {
-    // Use the Quill content from state
+   
     let quillValue = value;
 
     const postsCollectionRef = collection(db, "BlogPosts");
-    // Replace base64-encoded images with URLs
+    
     quillValue = await replaceBase64Images(quillValue);
 
-    // Remove <p> tags around images
+    
     quillValue = quillValue
     .replace(/<p><img/g, "<img")
     .replace(/><\/p>/g, "/>")
     .replace(/<h[1-4]><img/g, "<img")
   
 
-    // Create a new BlogPost document
+   
     const docRef = await addDoc(postsCollectionRef, {
       authorId: auth.currentUser?.uid || "Unknown",
       authorName: auth.currentUser?.user?.authorName || auth.currentUser?.displayName || "Unknown",
@@ -96,7 +96,7 @@ const Page = () => {
   };
 
   const handleTitleClick = () => {
-    // Clear the title when the input is clicked
+   
     setTitle('');
    
   };
@@ -114,7 +114,7 @@ const Page = () => {
 
       quillEditor.addEventListener("click", handleEditorClick);
 
-      // Remove the event listener when the component is unmounted
+      
       return () => {
         quillEditor.removeEventListener("click", handleEditorClick);
       };

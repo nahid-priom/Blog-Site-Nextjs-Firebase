@@ -11,7 +11,6 @@ export default function Home() {
 
   useEffect(() => {
     const getPosts = async () => {
-      // Fetch data from BlogPosts collection
       const postsData = await getDocs(postsCollectionRef);
       setPostLists(
         postsData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
@@ -22,14 +21,14 @@ export default function Home() {
   }, []);
 
   function extractParagraph(htmlString) {
-    const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-    const paragraphs = doc.querySelectorAll('p');
+    const doc = new DOMParser().parseFromString(htmlString, "text/html");
+    const paragraphs = doc.querySelectorAll("p");
 
     if (paragraphs.length > 0) {
       return paragraphs[0].textContent;
     }
 
-    return ''; // No paragraphs found
+    return "";
   }
 
   function truncateText(text, numWords) {
@@ -65,11 +64,12 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Render Title and Content */}
           <div className="flex justify-center items-center">
             <div className="w-3/4 pr-4">
-            <Link href="/blog/:[id]" as={`/blog/${post.id}`}>
-                <h2 className=" text-base md:text-xl py-2 font-semibold">{post.title}</h2>
+              <Link href="/blog/:[id]" as={`/blog/${post.id}`}>
+                <h2 className=" text-base md:text-xl py-2 font-semibold">
+                  {post.title}
+                </h2>
               </Link>
 
               {post.contentData && (
@@ -92,8 +92,6 @@ export default function Home() {
           <p className="flex justify-start pt-8 pb-4 items-center">
             5 min read
           </p>
-
-          {/* Add additional components or styles as needed */}
         </div>
       ))}
     </div>

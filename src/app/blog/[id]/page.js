@@ -9,11 +9,9 @@ const SingleBlogPost = () => {
   const { id } = useParams();
 
   const [post, setPost] = useState(null);
-  const [readingTime, setReadingTime] = useState(0); // Initial reading time in minutes
-  console.log(readingTime)
+  const [readingTime, setReadingTime] = useState(5);
   const [isReading, setIsReading] = useState(false);
   const readingTimeRef = useRef(readingTime);
-
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -26,12 +24,10 @@ const SingleBlogPost = () => {
             setPost({ id: postDoc.id, ...postDoc.data() });
           } else {
             console.log("Post not found");
-            // Handle post not found
           }
         }
       } catch (error) {
         console.error("Error fetching post:", error);
-        // Handle error (e.g., show an error message)
       }
     };
 
@@ -41,7 +37,7 @@ const SingleBlogPost = () => {
   useEffect(() => {
     readingTimeRef.current = readingTime;
   }, [readingTime]);
-  
+
   const handleScroll = () => {
     const postContentElement = document.getElementById("post-content");
 
@@ -59,17 +55,14 @@ const SingleBlogPost = () => {
 
   const updateReadingTimeInFirestore = async () => {
     try {
-      // Reference the specific document using the id
       const postDocRef = doc(db, "BlogPosts", id);
-  
-      // Get the latest readingTime value
+
       const latestReadingTime = readingTimeRef.current;
-  
-      // Update the document with the new readingTime
+
       await updateDoc(postDocRef, {
         readingTime: latestReadingTime,
       });
-  
+
       console.log("Reading time updated for post with ID:", id);
     } catch (error) {
       console.error("Error updating reading time:", error);
@@ -78,7 +71,6 @@ const SingleBlogPost = () => {
 
   const updateReadingTime = () => {
     if (isReading) {
-      // Adjust the reading time based on your own calculations
       setReadingTime((prevReadingTime) => prevReadingTime + 0.2);
     } else {
       updateReadingTimeInFirestore();
@@ -87,8 +79,7 @@ const SingleBlogPost = () => {
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-    const intervalId = setInterval(updateReadingTime, 10000); // Update every 10 seconds
-
+    const intervalId = setInterval(updateReadingTime, 10000);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearInterval(intervalId);
@@ -96,7 +87,6 @@ const SingleBlogPost = () => {
   }, [isReading, readingTime, id, updateReadingTimeInFirestore]);
 
   if (!post) {
-    // Handle loading state or post not found
     return (
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">
         Loading...
@@ -126,7 +116,6 @@ const SingleBlogPost = () => {
         </p>
       </div>
       <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
-      {/* Add other post details as needed */}
     </div>
   );
 };

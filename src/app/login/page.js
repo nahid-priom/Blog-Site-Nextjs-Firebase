@@ -9,12 +9,12 @@ import { FaGoogle } from 'react-icons/fa';
 
 const Page = () => {
     const { user, googleSignIn, logOut } = UserAuth();
-    const router = useRouter(); // Initialize the useRouter hook
+    const router = useRouter(); 
   
     const handleSignIn = async () => {
       try {
         await googleSignIn();
-        // Redirect to the homepage after successful login
+       
         router.push('/');
       } catch (error) {
         console.log(error);
