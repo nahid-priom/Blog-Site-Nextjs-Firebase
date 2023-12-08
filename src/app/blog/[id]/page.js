@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase-config";
 import DOMPurify from "dompurify";
 
@@ -9,9 +9,8 @@ const SingleBlogPost = () => {
   const { id } = useParams();
 
   const [post, setPost] = useState(null);
-  const [readingTime, setReadingTime] = useState(5);
   const [isReading, setIsReading] = useState(false);
-  const readingTimeRef = useRef(readingTime);
+  const [readingTimeState, setReadingTimeState] = useState(5);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -21,7 +20,8 @@ const SingleBlogPost = () => {
           const postDoc = await getDoc(postDocRef);
 
           if (postDoc.exists()) {
-            setPost({ id: postDoc.id, ...postDoc.data() });
+            const postData = { id: postDoc.id, ...postDoc.data() };
+            setPost(postData);
           } else {
             console.log("Post not found");
           }
@@ -33,59 +33,69 @@ const SingleBlogPost = () => {
 
     fetchPost();
   }, [id]);
-
   useEffect(() => {
-    readingTimeRef.current = readingTime;
-  }, [readingTime]);
+    const handleScroll = () => {
+      const postContentElement = document.getElementById("post-content");
 
-  const handleScroll = () => {
-    const postContentElement = document.getElementById("post-content");
+      if (postContentElement) {
+        const scrollPosition = window.scrollY;
+        const postHeight = postContentElement.offsetHeight;
+        const windowHeight = window.innerHeight;
 
-    if (postContentElement) {
-      const scrollPosition = window.scrollY;
-      const postHeight = postContentElement.offsetHeight;
-      const windowHeight = window.innerHeight;
+        const scrollPercentage =
+          (scrollPosition / (postHeight - windowHeight)) * 100;
 
-      const scrollPercentage =
-        (scrollPosition / (postHeight - windowHeight)) * 100;
+        setIsReading(scrollPercentage < 100);
+      }
+    };
 
-      setIsReading(scrollPercentage < 100);
-    }
-  };
+    const updateReadingTimeInFirestore = async (updatedReadingTime) => {
+      try {
+        const postDocRef = doc(db, "BlogPosts", id);
 
-  const updateReadingTimeInFirestore = async () => {
-    try {
-      const postDocRef = doc(db, "BlogPosts", id);
+        await updateDoc(postDocRef, {
+          readingTime: updatedReadingTime,
+        });
 
-      const latestReadingTime = readingTimeRef.current;
+        console.log("Reading time updated for post with ID:", id);
+      } catch (error) {
+        console.error("Error updating reading time:", error);
+      }
+    };
 
-      await updateDoc(postDocRef, {
-        readingTime: latestReadingTime,
-      });
+    const updateReadingTime = async () => {
+      try {
+        const postDocRef = doc(db, "BlogPosts", id);
+        const postDoc = await getDoc(postDocRef);
 
-      console.log("Reading time updated for post with ID:", id);
-    } catch (error) {
-      console.error("Error updating reading time:", error);
-    }
-  };
+        if (postDoc.exists()) {
+          const previousReadingTime = postDoc.data().readingTime || 0;
 
-  const updateReadingTime = () => {
-    if (isReading) {
-      setReadingTime((prevReadingTime) => prevReadingTime + 0.2);
-    } else {
-      updateReadingTimeInFirestore();
-    }
-  };
+          if (isReading && id) {
+            const increment = 0.16;
+            setReadingTimeState(
+              (prevReadingTime) => prevReadingTime + increment
+            );
 
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+            updateReadingTimeInFirestore(previousReadingTime + increment);
+          }
+        } else {
+          console.log("Post not found");
+        }
+      } catch (error) {
+        console.error("Error fetching post or updating reading time:", error);
+      }
+    };
+
     const intervalId = setInterval(updateReadingTime, 10000);
+
+    window.addEventListener("scroll", handleScroll);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearInterval(intervalId);
     };
-  }, [isReading, readingTime, id, updateReadingTimeInFirestore]);
-
+  }, [isReading, id, post]);
   if (!post) {
     return (
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl">
@@ -112,7 +122,7 @@ const SingleBlogPost = () => {
           </p>
         </div>
         <p id="post-content" className="ml-2">
-          {Math.ceil(readingTime)} min read
+          {Math.ceil(post.readingTime)} min read
         </p>
       </div>
       <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />

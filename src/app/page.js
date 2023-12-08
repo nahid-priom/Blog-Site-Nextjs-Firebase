@@ -56,7 +56,7 @@ export default function Home() {
               alt="Profile Picture"
               className="w-6 h-6 rounded-full mr-2"
             />
-            <p className="text-xs md:text-sm font-bold pr-2 border-r-2 border-gray-500">
+            <p className="text-xs md:text-sm text-gray-600 font-bold pr-2 border-r-2 border-gray-500">
               {post.authorName}
             </p>
             <p className="text-xs md:text-sm text-gray-900 pl-2">
@@ -90,7 +90,7 @@ export default function Home() {
             )}
           </div>
           <p className="flex justify-start pt-8 pb-4 items-center">
-            5 min read
+            {Math.ceil(post.readingTime)} min read
           </p>
         </div>
       ))}
